@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fuel Transfer</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fuel Transfer">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+:root {
+  --bg: #030303;
+  --panel: #080808;
+  --border: #3a3a3a;
+  --white: #ffffff;
+  --yellow: #ffd400;
+  --green: #20e000;
+  --red: #ff2020;
+  --orange: #ff8500;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.app {
+  width: 100vw;
+  height: 100dvh;
+  padding: calc(env(safe-area-inset-top) + 5px) 10px calc(env(safe-area-inset-bottom) + 5px);
+  display: grid;
+  grid-template-rows: 44px 150px 12px 410px 1fr;
+  gap: 7px;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 98px 1fr 118px;
+  align-items: center;
+  gap: 8px;
+}
+
+button {
+  font-family: inherit;
+  font-weight: 900;
+  color: white;
+}
+
+.reset-btn {
+  height: 42px;
+  border-radius: 12px;
+  border: 3px solid var(--orange);
+  background: #111;
+  color: var(--orange);
+  font-size: 18px;
+}
+
+.switch-hint {
+  text-align: right;
+  font-size: 13px;
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: .4px;
+  color: #fff;
+}
+
+.switch-hint span {
+  font-size: 38px;
+  line-height: 0;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.toggle-btn {
+  height: 42px;
+  border-radius: 12px;
+  border: 3px solid var(--white);
+  background: #101010;
+  color: var(--white);
+  font-size: 22px;
+}
+
+.input-stack {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 7px;
+  min-height: 0;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  min-height: 0;
+}
+
+.input-label,
+.input-box {
+  min-height: 0;
+  border-radius: 13px;
+  border: 2px solid var(--border);
+  background: linear-gradient(180deg, #111, #060606);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.input-label {
+  font-size: clamp(18px, 5vw, 30px);
+  font-weight: 900;
+  letter-spacing: .5px;
+}
+
+.input-box {
+  font-size: clamp(32px, 10vw, 60px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+}
+
+.activeField .input-box {
+  border-color: var(--white);
+  box-shadow: 0 0 16px rgba(255,255,255,.95);
+}
+
+.lockedField {
+  opacity: .78;
+}
+
+.orange-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--orange);
+  box-shadow: 0 0 13px var(--orange);
+}
+
+.outputs {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.output-panel {
+  min-height: 0;
+  border-radius: 17px;
+  border: 4px solid;
+  display: grid;
+  grid-template-rows: 34px 1fr;
+  align-items: center;
+  justify-items: center;
+  padding: 9px 10px 13px;
+  overflow: hidden;
+  background: #060606;
+}
+
+.output-label {
+  width: 100%;
+  text-align: center;
+  font-size: clamp(19px, 5vw, 31px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .5px;
+}
+
+.output-value {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(76px, 22vw, 132px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: .9;
+  text-align: center;
+}
+
+.total {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: #000;
+  box-shadow: 0 0 13px rgba(255,212,0,.9);
+}
+
+.stbd {
+  border-color: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 13px rgba(32,224,0,.9);
+}
+
+.port {
+  border-color: var(--red);
+  color: var(--red);
+  box-shadow: 0 0 13px rgba(255,32,32,.9);
+}
+
+.keypad {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.keyrow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.key {
+  border-radius: 10px;
+  border: 1px solid #555;
+  background: linear-gradient(#424242, #252525);
+  color: #fff;
+  font-size: clamp(28px, 8vw, 44px);
+  font-weight: 500;
+}
+
+.actionKey,
+.returnKey {
+  border: 2px solid #777;
+}
+
+.returnKey {
+  font-size: clamp(24px, 7vw, 38px);
+  font-weight: 900;
+}
+
+.finishKey {
+  font-size: clamp(20px, 5.5vw, 32px);
+  font-weight: 900;
+}
+
+.key:active,
+.reset-btn:active,
+.toggle-btn:active {
+  transform: scale(.98);
+  filter: brightness(1.25);
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-height: 760px) {
+  .app {
+    grid-template-rows: 40px 126px 10px 356px 1fr;
+    gap: 5px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div class="topbar">
+    <button class="reset-btn" onclick="resetApp()">RESET</button>
+    <div class="switch-hint">TAP TO<br>SWITCH TANKS <span>→</span></div>
+    <button id="toggleBtn" class="toggle-btn" onclick="toggleSide()">PORT</button>
+  </div>
+
+  <div class="input-stack">
+    <div id="field0Row" class="input-row" onclick="selectField(0)">
+      <div class="input-label">METER</div>
+      <div id="field0Value" class="input-box"></div>
+    </div>
+
+    <div id="field1Row" class="input-row" onclick="selectField(1)">
+      <div id="field1Label" class="input-label">PORT</div>
+      <div id="field1Value" class="input-box"></div>
+    </div>
+
+    <div id="field2Row" class="input-row" onclick="selectField(2)">
+      <div id="field2Label" class="input-label">STBD</div>
+      <div id="field2Value" class="input-box"></div>
+    </div>
+  </div>
+
+  <div class="orange-bar"></div>
+
+  <div class="outputs">
+    <div class="output-panel total">
+      <div class="output-label">TOTAL METER TRANSFER</div>
+      <div id="totalTransfer" class="output-value">0</div>
+    </div>
+
+    <div class="output-panel stbd">
+      <div class="output-label">STBD</div>
+      <div id="stbdTotal" class="output-value">0</div>
+    </div>
+
+    <div class="output-panel port">
+      <div class="output-label">PORT</div>
+      <div id="portTotal" class="output-value">0</div>
+    </div>
+  </div>
+
+  <div id="keypad" class="keypad">
+    <div class="keyrow">
+      <button class="key" onclick="pressKey('1')">1</button>
+      <button class="key" onclick="pressKey('2')">2</button>
+      <button class="key" onclick="pressKey('3')">3</button>
+    </div>
+    <div class="keyrow">
+      <button class="key" onclick="pressKey('4')">4</button>
+      <button class="key" onclick="pressKey('5')">5</button>
+      <button class="key" onclick="pressKey('6')">6</button>
+    </div>
+    <div class="keyrow">
+      <button class="key" onclick="pressKey('7')">7</button>
+      <button class="key" onclick="pressKey('8')">8</button>
+      <button class="key" onclick="pressKey('9')">9</button>
+    </div>
+    <div class="keyrow">
+      <button class="key actionKey" onclick="backspace()">X</button>
+      <button class="key" onclick="pressKey('0')">0</button>
+      <button id="nextKey" class="key returnKey" onclick="nextField()">↵</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "fuelTransferAppV12";
+let state = {
+  date: todayKey(),
+  locked: false,
+  finalized: false,
+  activeField: 0,
+  stop1Side: "PORT",
+  values: ["", "", ""]
+};
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+function toNumber(value) {
+  const clean = String(value).replace(/,/g, "").trim();
+  if (!clean) return null;
+  const number = Number(clean);
+  return Number.isFinite(number) ? number : null;
+}
+
+function inputDisplay(value) {
+  if (!value) return "";
+  const raw = String(value);
+  const parts = raw.split(".");
+  const whole = parts[0] === "" ? "0" : Number(parts[0]).toLocaleString("en-US");
+  return parts.length > 1 ? whole + "." + parts[1] : whole;
+}
+
+function numberDisplay(value) {
+  if (!Number.isFinite(value)) return "0";
+  const safe = Math.max(0, value);
+  const rounded = Number.isInteger(safe) ? safe : Math.round(safe * 10) / 10;
+  return rounded.toLocaleString("en-US");
+}
+
+function save() {
+  state.date = todayKey();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+    } catch {
+      clearState();
+    }
+  }
+
+  if (state.date !== todayKey()) clearState();
+  render();
+}
+
+function clearState() {
+  state = {
+    date: todayKey(),
+    locked: false,
+    finalized: false,
+    activeField: 0,
+    stop1Side: "PORT",
+    values: ["", "", ""]
+  };
+  save();
+}
+
+function toggleSide() {
+  if (state.locked || state.finalized) {
+    alert("The button is locked. You must use RESET.");
+    return;
+  }
+
+  state.stop1Side = "STBD";
+  state.locked = true;
+  save();
+  render();
+}
+
+function selectField(index) {
+  if (state.finalized) return;
+  state.activeField = index;
+  save();
+  render();
+}
+
+function pressKey(key) {
+  if (state.finalized) return;
+
+  let value = state.values[state.activeField] || "";
+  if (value.length >= 9) return;
+
+  state.values[state.activeField] = value + key;
+  save();
+  render();
+}
+
+function backspace() {
+  if (state.finalized) return;
+  const value = state.values[state.activeField] || "";
+  state.values[state.activeField] = value.slice(0, -1);
+  save();
+  render();
+}
+
+function nextField() {
+  if (state.finalized) return;
+
+  if (state.activeField < 2) {
+    state.activeField++;
+  } else {
+    state.finalized = true;
+  }
+
+  save();
+  render();
+}
+
+function resetApp() {
+  if (!confirm("Are you sure?")) return;
+  clearState();
+  render();
+}
+
+function render() {
+  const stop2Side = state.stop1Side === "PORT" ? "STBD" : "PORT";
+
+  toggleBtn.textContent = state.stop1Side;
+  field1Label.textContent = state.stop1Side;
+  field2Label.textContent = stop2Side;
+
+  field0Value.textContent = inputDisplay(state.values[0]);
+  field1Value.textContent = inputDisplay(state.values[1]);
+  field2Value.textContent = inputDisplay(state.values[2]);
+
+  [field0Row, field1Row, field2Row].forEach((row, index) => {
+    row.classList.toggle("activeField", !state.finalized && state.activeField === index);
+    row.classList.toggle("lockedField", state.finalized);
+  });
+
+  nextKey.textContent = state.activeField < 2 ? "↵" : "FINISH";
+  nextKey.classList.toggle("finishKey", state.activeField === 2);
+  keypad.classList.toggle("hidden", state.finalized);
+
+  calculate();
+}
+
+function calculate() {
+  const startMeter = toNumber(state.values[0]);
+  const firstTankMeter = toNumber(state.values[1]);
+  const secondTankMeter = toNumber(state.values[2]);
+
+  let port = 0;
+  let stbd = 0;
+  let totalMeter = startMeter !== null ? startMeter : 0;
+
+  // Field 1: starting/current meter reading.
+  // Field 2: meter reading after first tank.
+  // Field 3: meter reading after second tank.
+  //
+  // Yellow total display = Start Meter + PORT transfer + STBD transfer.
+  // Example:
+  // Start = 100
+  // PORT meter = 200, so PORT = 100
+  // STBD meter = 250, so STBD = 50
+  // Yellow total = 100 + 100 + 50 = 250
+  if (startMeter !== null && firstTankMeter !== null) {
+    const firstAmount = firstTankMeter - startMeter;
+
+    if (state.stop1Side === "PORT") port = firstAmount;
+    else stbd = firstAmount;
+  }
+
+  if (firstTankMeter !== null && secondTankMeter !== null) {
+    const secondAmount = secondTankMeter - firstTankMeter;
+    const stop2Side = state.stop1Side === "PORT" ? "STBD" : "PORT";
+
+    if (stop2Side === "PORT") port = secondAmount;
+    else stbd = secondAmount;
+  }
+
+  totalMeter = (startMeter !== null ? startMeter : 0) + port + stbd;
+
+  totalTransfer.textContent = numberDisplay(totalMeter);
+  stbdTotal.textContent = numberDisplay(stbd);
+  portTotal.textContent = numberDisplay(port);
+}
+
+window.addEventListener("load", loadState);
+window.addEventListener("focus", loadState);
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+</body>
+</html>
