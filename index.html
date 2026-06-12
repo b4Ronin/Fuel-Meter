@@ -362,7 +362,7 @@ button {
 </div>
 
 <script>
-const STORAGE_KEY = "fuelTransferAppV15";
+const STORAGE_KEY = "fuelTransferAppV17";
 let state = {
   date: todayKey(),
   locked: false,
@@ -517,23 +517,27 @@ function calculate() {
 
   let port = 0;
   let stbd = 0;
-  let totalMeter = startMeter !== null ? startMeter : 0;
+  let currentMeter = 0;
 
-  // Field 1: starting/current meter reading.
-  // Field 2: meter reading after first tank.
-  // Field 3: meter reading after second tank.
+  // Correct single-meter logic:
+  // Field 1 = starting meter reading.
+  // Field 2 = meter reading after first tank.
+  // Field 3 = meter reading after second tank.
   //
-  // Yellow total display = Start Meter + PORT transfer + STBD transfer.
-  // Example:
-  // Start = 100
-  // PORT meter = 200, so PORT = 100
-  // STBD meter = 250, so STBD = 50
-  // Yellow total = 100 + 100 + 50 = 250
+  // First tank amount = Field 2 - Field 1.
+  // Second tank amount = Field 3 - Field 2.
+  // Yellow total display = current meter reading at the current step.
+  if (startMeter !== null) {
+    currentMeter = startMeter;
+  }
+
   if (startMeter !== null && firstTankMeter !== null) {
     const firstAmount = firstTankMeter - startMeter;
 
     if (state.stop1Side === "PORT") port = firstAmount;
     else stbd = firstAmount;
+
+    currentMeter = firstTankMeter;
   }
 
   if (firstTankMeter !== null && secondTankMeter !== null) {
@@ -542,11 +546,11 @@ function calculate() {
 
     if (stop2Side === "PORT") port = secondAmount;
     else stbd = secondAmount;
+
+    currentMeter = secondTankMeter;
   }
 
-  totalMeter = (startMeter !== null ? startMeter : 0) + port + stbd;
-
-  totalTransfer.textContent = numberDisplay(totalMeter);
+  totalTransfer.textContent = numberDisplay(currentMeter);
   stbdTotal.textContent = numberDisplay(stbd);
   portTotal.textContent = numberDisplay(port);
 }
