@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="96" fill="#000"/>
+<text x="256" y="220" text-anchor="middle" fill="#ffd400" font-size="90" font-family="Arial" font-weight="bold">FUEL</text>
+<text x="256" y="330" text-anchor="middle" fill="#fff" font-size="70" font-family="Arial" font-weight="bold">APP</text>
+</svg>
