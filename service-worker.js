@@ -1,4 +1,4 @@
-const CACHE_NAME = "fuel-transfer-v17";
+const CACHE_NAME = "fuel-transfer-v99";
 const FILES_TO_CACHE = ["./", "./index.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", event => {

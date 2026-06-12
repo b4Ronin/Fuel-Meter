@@ -362,7 +362,7 @@ button {
 </div>
 
 <script>
-const STORAGE_KEY = "fuelTransferAppV17";
+const STORAGE_KEY = "fuelTransferAppV99";
 let state = {
   date: todayKey(),
   locked: false,
@@ -511,43 +511,55 @@ function render() {
 }
 
 function calculate() {
-  const startMeter = toNumber(state.values[0]);
-  const firstTankMeter = toNumber(state.values[1]);
-  const secondTankMeter = toNumber(state.values[2]);
+  const meterStart = toNumber(state.values[0]);
+  const tank1Meter = toNumber(state.values[1]);
+  const tank2Meter = toNumber(state.values[2]);
 
   let port = 0;
   let stbd = 0;
   let currentMeter = 0;
 
-  // Correct single-meter logic:
-  // Field 1 = starting meter reading.
-  // Field 2 = meter reading after first tank.
-  // Field 3 = meter reading after second tank.
+  // SINGLE CENTER METER LOGIC:
+  // Row 1 = starting meter reading.
+  // Row 2 = meter reading after first tank.
+  // Row 3 = meter reading after second tank.
   //
-  // First tank amount = Field 2 - Field 1.
-  // Second tank amount = Field 3 - Field 2.
-  // Yellow total display = current meter reading at the current step.
-  if (startMeter !== null) {
-    currentMeter = startMeter;
+  // Current yellow meter display:
+  // - after row 1: row 1
+  // - after row 2: row 2
+  // - after row 3: row 3
+  //
+  // Tank totals:
+  // - first tank = row 2 - row 1
+  // - second tank = row 3 - row 2
+
+  if (meterStart !== null) {
+    currentMeter = meterStart;
   }
 
-  if (startMeter !== null && firstTankMeter !== null) {
-    const firstAmount = firstTankMeter - startMeter;
+  if (meterStart !== null && tank1Meter !== null) {
+    const tank1Amount = tank1Meter - meterStart;
 
-    if (state.stop1Side === "PORT") port = firstAmount;
-    else stbd = firstAmount;
+    if (state.stop1Side === "PORT") {
+      port = tank1Amount;
+    } else {
+      stbd = tank1Amount;
+    }
 
-    currentMeter = firstTankMeter;
+    currentMeter = tank1Meter;
   }
 
-  if (firstTankMeter !== null && secondTankMeter !== null) {
-    const secondAmount = secondTankMeter - firstTankMeter;
-    const stop2Side = state.stop1Side === "PORT" ? "STBD" : "PORT";
+  if (tank1Meter !== null && tank2Meter !== null) {
+    const tank2Amount = tank2Meter - tank1Meter;
+    const tank2Side = state.stop1Side === "PORT" ? "STBD" : "PORT";
 
-    if (stop2Side === "PORT") port = secondAmount;
-    else stbd = secondAmount;
+    if (tank2Side === "PORT") {
+      port = tank2Amount;
+    } else {
+      stbd = tank2Amount;
+    }
 
-    currentMeter = secondTankMeter;
+    currentMeter = tank2Meter;
   }
 
   totalTransfer.textContent = numberDisplay(currentMeter);
@@ -559,7 +571,9 @@ window.addEventListener("load", loadState);
 window.addEventListener("focus", loadState);
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
+  navigator.serviceWorker.register("service-worker.js").then(reg => {
+    reg.update();
+  });
 }
 </script>
 </body>
